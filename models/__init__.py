@@ -5,6 +5,7 @@ from .svhn import *
 from .mobnet_cif100 import *
 from .mobnet_cif100_nobn import *
 from .lenet5 import *
+from .vgg_cif100 import *
 
 #from .custom import *
 #

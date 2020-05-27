@@ -5,7 +5,6 @@ import argparse
 import pprint
 
 import torch
-#from models.vgg_cif100 import vgg13_bn, vgg13_nobn
 from utils import *
 
 def main():
@@ -47,6 +46,7 @@ def main():
         from models import mobilenet_cif100
         net = mobilenet_cif100()
     if 'vgg_cif100' in org_model['arch']:
+        from models import vgg13_bn
         net = vgg13_bn()
     if 'svhn' in org_model['arch']:
         from models import svhn
@@ -106,6 +106,7 @@ def main():
                 from models import mobilenet_cif100_nobn
                 new_net = mobilenet_cif100_nobn()
             elif 'vgg_cif100' in org_model['arch']:
+                from models import vgg13_nobn
                 new_net = vgg13_nobn()
 
             new_net = merge_bn(net, new_net)
