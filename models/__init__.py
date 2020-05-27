@@ -1,5 +1,7 @@
 from .VGG_16_cifar10 import *
 from .mobilenet_mod import *
+from .alex import *
+from .svhn import *
 
 #from .custom import *
 #

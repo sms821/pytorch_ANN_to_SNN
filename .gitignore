@@ -1,3 +1,5 @@
 vgg_cifar10/
 mobnet_cif10/
+alexnet/
+svhn/
 __pycache__/

@@ -10,12 +10,8 @@ import torch
 #from models.mobnet_cif100 import mobilenet_cif100
 #from models.mobnet_cif100_nobn import mobilenet_cif100_nobn
 #from models.vgg_cif100 import vgg13_bn, vgg13_nobn
-#from models.svhn import svhn
-#from models.alex import alexnet
-#from models.alex import AlexNet
 #from models.len5_mlp import lenet5 #, mnist_mlp
 from utils import *
-#from spiking import *
 
 def main():
     parser = argparse.ArgumentParser(description='Deep Learning SNN simulation')
@@ -57,8 +53,10 @@ def main():
     if 'vgg_cif100' in org_model['arch']:
         net = vgg13_bn()
     if 'svhn' in org_model['arch']:
+        from models import svhn
         net = svhn()
     if 'alex' in org_model['arch']:
+        from models import alexnet
         net = alexnet()
     if 'lenet5' in org_model['arch']:
         net = lenet5()

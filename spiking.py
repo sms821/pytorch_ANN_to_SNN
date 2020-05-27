@@ -16,8 +16,6 @@ import pandas as pd
 
 from models.spiking_activations import SpikeRelu, spikeRelu
 #from models.alex_spiking import alexnet_partial
-#from models.spiking_lenet5 import lenet5_spiking
-#from models.svhn_spike import svhn_partial
 
 ################# Spiking VGG-net: uses spike relus #################################
 
@@ -70,13 +68,13 @@ def simulate_spike_model(net, arch, val_loader, config, thresholds, max_acts, \
     spike_buffers = None
 
     ############ Saving inference results to a csv file #############
-    filename = os.path.join(out_dir, 'inference_results.csv')
-    field_names = ['input', 'predicted', 'plane', 'car', 'bird', 'cat',
-            'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-    csv_file = open(filename, mode='a')
-    import csv
-    writer = csv.DictWriter(csv_file, fieldnames=field_names)
-    writer.writeheader()
+    #filename = os.path.join(out_dir, 'inference_results.csv')
+    #field_names = ['input', 'predicted', 'plane', 'car', 'bird', 'cat',
+    #        'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+    #csv_file = open(filename, mode='a')
+    #import csv
+    #writer = csv.DictWriter(csv_file, fieldnames=field_names)
+    #writer.writeheader()
 
     with torch.no_grad():
         for i, data in enumerate(val_loader):
@@ -163,6 +161,7 @@ def simulate_spike_model(net, arch, val_loader, config, thresholds, max_acts, \
             #print(split_layer)
             predicted_partial = -1
             if hybrid:
+                assert save_activation, 'set `save_activations` to True in config-file.'
                 sbi, model_partial = create_partial_model(split_layer, net, spike_net, arch)
                 #print(model_partial)
                 # sbi: spike buffer index
@@ -215,12 +214,12 @@ def simulate_spike_model(net, arch, val_loader, config, thresholds, max_acts, \
 
             ## Saving results to a csv file
 
-            for b in range(batch_size):
-                save_dict = {'input': labels.data.tolist()[b], \
-                        'predicted': predicted.data.tolist()[b] }
-                for n, i in enumerate(total_spikes_b_c.data.tolist()[b]):
-                    save_dict[field_names[n+2]] = int(i)
-                writer.writerow(save_dict )
+            #for b in range(batch_size):
+            #    save_dict = {'input': labels.data.tolist()[b], \
+            #            'predicted': predicted.data.tolist()[b] }
+            #    for n, i in enumerate(total_spikes_b_c.data.tolist()[b]):
+            #        save_dict[field_names[n+2]] = int(i)
+            #    writer.writerow(save_dict )
 
             ## Saving results to a csv file (end)
 
@@ -380,6 +379,7 @@ def create_partial_model(split_layer_num, model, spike_model, arch):
     elif 'alex' in arch:
         model_partial = alexnet_partial(SPLIT_LAYER, num_to_name_ann, n_to_t_ann)
     elif 'svhn' in arch:
+        from models.svhn_spike import svhn_partial
         model_partial = svhn_partial(SPLIT_LAYER, num_to_name_ann, n_to_t_ann)
 
     return si, model_partial
@@ -618,12 +618,8 @@ def sanity_check(net, spike_net, max_acts):
             i += 1
 
 
-#from models import mobilenet_spiking, vgg16_spiking, mobilenet_tinyI_spiking
-#from models import mobilenet_trimmed4_spiking, mobilenet_mod_spiking
 #from models.mobnet_cif100_nobn_spike import mobilenet_cif100_nobn_spike
 #from models.vgg_cif100_spike import vgg13_nobn_spike
-#from models.svhn_spike import svhn_spike
-#from models.alex_spiking import alexnet_spiking
 def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_acts, \
         device='cuda:0', out_dir=None):
 
@@ -667,9 +663,11 @@ def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_act
         spike_net = vgg13_nobn_spike(thresholds, device, clamp_slope, reset)
 
     elif 'svhn' in arch:
+        from models.svhn_spike import svhn_spike
         spike_net = svhn_spike(thresholds, device, clamp_slope, reset)
 
     elif 'alex' in arch:
+        from models.alex_spiking import alexnet_spiking
         spike_net = alexnet_spiking(thresholds, device, clamp_slope, reset)
 
     elif 'lenet5' in arch:
