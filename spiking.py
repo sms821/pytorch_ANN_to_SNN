@@ -15,8 +15,6 @@ plt.style.use('ggplot')
 import pandas as pd
 
 from models.spiking_activations import SpikeRelu, spikeRelu
-#from models import mobilenet_partial
-#from models import mobilenet_v2_spiking
 #from models.alex_spiking import alexnet_partial
 #from models.spiking_lenet5 import lenet5_spiking
 #from models.svhn_spike import svhn_partial
@@ -379,8 +377,6 @@ def create_partial_model(split_layer_num, model, spike_model, arch):
     if 'vgg' in arch:
         from models.vgg16_spiking import vggnet_partial
         model_partial = vggnet_partial(SPLIT_LAYER, num_to_name_ann, n_to_t_ann)
-    elif 'mobnet_cif10_mod' in arch:
-        model_partial = mobilenet_partial(SPLIT_LAYER, num_to_name_ann, n_to_t_ann)
     elif 'alex' in arch:
         model_partial = alexnet_partial(SPLIT_LAYER, num_to_name_ann, n_to_t_ann)
     elif 'svhn' in arch:
@@ -513,7 +509,7 @@ def plot_mean_var(net, spike_net, out_dir):
 
     wt_mean, wt_var = [], []
     bias_mean, bias_var = [], []
-    layer_num = []
+    layer_num, layer_num_b = [], []
     i = 1
     for m in net.modules():
         if type(m) == nn.Conv2d or type(m) == nn.Linear:
@@ -522,6 +518,7 @@ def plot_mean_var(net, spike_net, out_dir):
                 wt_mean.append(m.weight.mean().cpu().numpy())
                 wt_var.append(m.weight.var().cpu().numpy())
                 if m.bias is not None:
+                    layer_num_b.append(i)
                     bias_mean.append(m.bias.mean().cpu().numpy())
                     bias_var.append(m.bias.var().cpu().numpy())
                 i += 1
@@ -529,7 +526,7 @@ def plot_mean_var(net, spike_net, out_dir):
     "wt, bias mean and var of the spiking model"
     wt_mean_s, wt_var_s = [], []
     bias_mean_s, bias_var_s = [], []
-    layer_num_s = []
+    layer_num_s, layer_num_b_s = [], []
     i = 1
     for m in spike_net.modules():
         if type(m) == nn.Conv2d or type(m) == nn.Linear:
@@ -538,6 +535,7 @@ def plot_mean_var(net, spike_net, out_dir):
                 wt_mean_s.append(m.weight.mean().cpu().numpy())
                 wt_var_s.append(m.weight.var().cpu().numpy())
                 if m.bias is not None:
+                    layer_num_b_s.append(i)
                     bias_mean_s.append(m.bias.mean().cpu().numpy())
                     bias_var_s.append(m.bias.var().cpu().numpy())
                 i += 1
@@ -551,8 +549,8 @@ def plot_mean_var(net, spike_net, out_dir):
 
     plt.subplot(2, 2, 2)
     if len(bias_mean) > 0:
-        plt.plot(layer_num, bias_mean, 'go', label='mean')
-        plt.plot(layer_num, bias_var, 'b^', label='variance')
+        plt.plot(layer_num_b, bias_mean, 'go', label='mean')
+        plt.plot(layer_num_b, bias_var, 'b^', label='variance')
         plt.title('original model biases')
         plt.legend()
 
@@ -565,8 +563,8 @@ def plot_mean_var(net, spike_net, out_dir):
 
     plt.subplot(2, 2, 4)
     if len(bias_mean_s) > 0:
-        plt.plot(layer_num, bias_mean_s, 'go', label='mean')
-        plt.plot(layer_num, bias_var_s, 'b^', label='variance')
+        plt.plot(layer_num_b_s, bias_mean_s, 'go', label='mean')
+        plt.plot(layer_num_b_s, bias_var_s, 'b^', label='variance')
         plt.title('spike model biases')
         plt.legend()
         plt.xlabel('layer number')
@@ -628,7 +626,6 @@ def sanity_check(net, spike_net, max_acts):
 #from models.alex_spiking import alexnet_spiking
 def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_acts, \
         device='cuda:0', out_dir=None):
-        #device='cuda:0', codesign_config=None, out_dir=None):
 
     ''' check if model has BN layers '''
     for m in net.modules():
@@ -659,14 +656,8 @@ def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_act
         from models import vgg16_spiking
         spike_net = vgg16_spiking.vgg16_spike(thresholds, device, clamp_slope, num_classes, reset)
 
-    #elif 'mobilenet_tinyI' in arch:
-    #    spike_net = mobilenet_tinyI_spiking.MobileNet_tinyI_spike(thresholds, clamp_slope, num_classes, device, reset)
-    #elif 'mobilenet_trim4' in arch:
-    #    spike_net = mobilenet_trimmed4_spiking.MobileNet_trimmed4_spiking(thresholds, clamp_slope, num_classes, device, reset)
-    #elif 'v2_mobnet' in arch:
-    #    spike_net = mobilenet_v2_spiking(thresholds, clamp_slope, device, reset)
-
     elif 'mobnet_cif10_mod' in arch:
+        from models import mobilenet_mod_spiking
         spike_net = mobilenet_mod_spiking.mobilenet_mod_spike(thresholds, device, clamp_slope, num_classes, reset)
 
     elif 'mobnet_cif100' in arch:
@@ -683,10 +674,6 @@ def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_act
 
     elif 'lenet5' in arch:
         spike_net = lenet5_spiking(thresholds, device, clamp_slope, reset)
-    #elif 'prj_mlp' in arch:
-    #    from models.mlp import MLP_ReLU_spiking
-    #    spike_net = MLP_ReLU_spiking(thresholds, device, clamp_slope, reset)
-    #    unquant_spike_net = MLP_ReLU_spiking(thresholds, device, clamp_slope, reset)
 
 
     ####### copy and adjust weights #######

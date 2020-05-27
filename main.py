@@ -7,13 +7,6 @@ import pprint
 import torch
 #from torchsummary import summary
 #
-#from models import MobileNet_mod, MobileNet_mod_nobn
-#from models import MobileNet_tinyI, MobileNet_tinyI_nobn
-#from models import MobileNet_trimmed4, MobileNet_trimmed4_nobn
-#from models import mobilenet_v2, mobilenet_v2_nobn
-##from models import vgg16_cifar10_quant, MobileNet_mod_quant
-#from models import vgg16_cifar10_clipped_quant
-#from models.mobilenet_mod_clipped_quant import *
 #from models.mobnet_cif100 import mobilenet_cif100
 #from models.mobnet_cif100_nobn import mobilenet_cif100_nobn
 #from models.vgg_cif100 import vgg13_bn, vgg13_nobn
@@ -56,13 +49,8 @@ def main():
     if 'vgg_cifar10' in org_model['arch']:
         from models import VGG_16_cifar10
         net = VGG_16_cifar10
-    #if 'mobilenet_tinyI' in org_model['arch']:
-    #    net = MobileNet_tinyI()
-    #if 'mobilenet_trim4' in org_model['arch']:
-    #    net = MobileNet_trimmed4(num_classes)
-    #if 'v2_mobnet' in org_model['arch']:
-    #    net = mobilenet_v2() # acc: 71.814%
     if 'mobnet_cif10_mod' in org_model['arch']:
+        from models import MobileNet_mod
         net = MobileNet_mod()
     if 'mobnet_cif100' in org_model['arch']:
         net = mobilenet_cif100()
@@ -74,9 +62,6 @@ def main():
         net = alexnet()
     if 'lenet5' in org_model['arch']:
         net = lenet5()
-    #if 'prj_mlp' in org_model['arch']:
-    #    from models.mlp import MLP_ReLU
-    #    net = MLP_ReLU()
 
     print(net)
     state = None
@@ -91,14 +76,6 @@ def main():
     if data_config['dataset'] == 'cifar10':
         trainloader, testloader = load_cifar10(data_dir, org_model['arch'], batch_size, class_num)
         img_size = (-1,3,32,32)
-
-    #if data_config['dataset'] == 'tinyimagenet':
-    #    #print(batch_size)
-    #    trainloader, testloader = load_tinyimagenet(data_dir, batch_size, class_num)
-    #    if 'mobilenet_trim4' in org_model['arch']:
-    #        img_size = (-1,3,56,56)
-    #    else:
-    #        img_size = (-1,3,64,64)
 
     if data_config['dataset'] == 'imagenet':
         trainloader, testloader = load_imagenet(data_dir, batch_size, shuffle=False)
@@ -124,17 +101,11 @@ def main():
 
     " fold back BN layers if any "
     new_net = None
-    if tasks.getboolean('remove_bn'):
+    remove_bn = tasks.getboolean('remove_bn')
+    if remove_bn:
         if has_bn(net):
-            if 'mobilenet_cifar10' in org_model['arch']:
-                new_net = MobileNet_nobn()
-            #elif 'mobilenet_tinyI' in org_model['arch']:
-            #    new_net = MobileNet_tinyI_nobn()
-            #elif 'mobilenet_trim4' in org_model['arch']:
-            #    new_net = MobileNet_trimmed4_nobn(num_classes)
-            #elif 'v2_mobnet' in org_model['arch']:
-            #    new_net = mobilenet_v2_nobn()
-            elif 'mobnet_cif10_mod' in org_model['arch']:
+            if 'mobnet_cif10_mod' in org_model['arch']:
+                from models import MobileNet_mod_nobn
                 new_net = MobileNet_mod_nobn()
             elif 'mobnet_cif100' in org_model['arch']:
                 new_net = mobilenet_cif100_nobn()
@@ -151,16 +122,10 @@ def main():
             print('model has no BN layers')
 
     " use model with folded BN "
-    if tasks.getboolean('use_nobn'):
-        #if 'mobilenet_cifar10' in org_model['arch']:
-        #    net = MobileNet_nobn()
-        #elif 'mobilenet_tinyI' in org_model['arch']:
-        #    net = MobileNet_tinyI_nobn()
-        #elif 'mobilenet_trim4' in org_model['arch']:
-        #    net = MobileNet_trimmed4_nobn(num_classes)
-        #elif 'v2_mobnet' in org_model['arch']:
-        #    net = mobilenet_v2_nobn()
+    use_nobn = tasks.getboolean('use_nobn')
+    if use_nobn:
         if 'mobnet_cif10_mod' in org_model['arch']:
+            from models import MobileNet_mod_nobn
             net = MobileNet_mod_nobn()
         elif 'mobnet_cif100' in org_model['arch']:
             net = mobilenet_cif100_nobn()
@@ -170,7 +135,8 @@ def main():
         net = net.to(device)
 
     " validate model with folded BN "
-    if tasks.getboolean('validate_nobn'):
+    validate_nobn = tasks.getboolean('validate_nobn')
+    if not remove_bn and validate_nobn:
         if not has_bn(net):
             print('Validating no_bn model...')
             validate(net, testloader)
