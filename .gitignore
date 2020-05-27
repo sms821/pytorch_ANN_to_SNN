@@ -2,6 +2,8 @@ vgg_cifar10/
 mobnet_cif10/
 alexnet/
 svhn/
+lenet5/
+mobnet_cif100/
 *.bak*
 configs/
 __pycache__/

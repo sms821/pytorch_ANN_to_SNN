@@ -618,7 +618,6 @@ def sanity_check(net, spike_net, max_acts):
             i += 1
 
 
-#from models.mobnet_cif100_nobn_spike import mobilenet_cif100_nobn_spike
 #from models.vgg_cif100_spike import vgg13_nobn_spike
 def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_acts, \
         device='cuda:0', out_dir=None):
@@ -657,6 +656,7 @@ def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_act
         spike_net = mobilenet_mod_spiking.mobilenet_mod_spike(thresholds, device, clamp_slope, num_classes, reset)
 
     elif 'mobnet_cif100' in arch:
+        from models.mobnet_cif100_nobn_spike import mobilenet_cif100_nobn_spike
         spike_net = mobilenet_cif100_nobn_spike(thresholds, device, clamp_slope, reset)
 
     elif 'vgg_cif100' in arch:
@@ -671,6 +671,7 @@ def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_act
         spike_net = alexnet_spiking(thresholds, device, clamp_slope, reset)
 
     elif 'lenet5' in arch:
+        from models.lenet5 import lenet5_spiking
         spike_net = lenet5_spiking(thresholds, device, clamp_slope, reset)
 
 

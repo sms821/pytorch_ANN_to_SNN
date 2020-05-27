@@ -5,12 +5,7 @@ import argparse
 import pprint
 
 import torch
-#from torchsummary import summary
-#
-#from models.mobnet_cif100 import mobilenet_cif100
-#from models.mobnet_cif100_nobn import mobilenet_cif100_nobn
 #from models.vgg_cif100 import vgg13_bn, vgg13_nobn
-#from models.len5_mlp import lenet5 #, mnist_mlp
 from utils import *
 
 def main():
@@ -49,6 +44,7 @@ def main():
         from models import MobileNet_mod
         net = MobileNet_mod()
     if 'mobnet_cif100' in org_model['arch']:
+        from models import mobilenet_cif100
         net = mobilenet_cif100()
     if 'vgg_cif100' in org_model['arch']:
         net = vgg13_bn()
@@ -59,6 +55,7 @@ def main():
         from models import alexnet
         net = alexnet()
     if 'lenet5' in org_model['arch']:
+        from models import lenet5
         net = lenet5()
 
     print(net)
@@ -106,6 +103,7 @@ def main():
                 from models import MobileNet_mod_nobn
                 new_net = MobileNet_mod_nobn()
             elif 'mobnet_cif100' in org_model['arch']:
+                from models import mobilenet_cif100_nobn
                 new_net = mobilenet_cif100_nobn()
             elif 'vgg_cif100' in org_model['arch']:
                 new_net = vgg13_nobn()
@@ -126,6 +124,7 @@ def main():
             from models import MobileNet_mod_nobn
             net = MobileNet_mod_nobn()
         elif 'mobnet_cif100' in org_model['arch']:
+            from models import mobilenet_cif100_nobn
             net = mobilenet_cif100_nobn()
         elif 'vgg_cif100' in org_model['arch']:
             net = vgg13_nobn()
@@ -137,7 +136,7 @@ def main():
     if not remove_bn and validate_nobn:
         if not has_bn(net):
             print('Validating no_bn model...')
-            validate(net, testloader)
+            validate(net, testloader, device)
         else:
             print('model has BN layers!! Exiting..')
             exit()
