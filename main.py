@@ -128,6 +128,7 @@ def main():
             from models import mobilenet_cif100_nobn
             net = mobilenet_cif100_nobn()
         elif 'vgg_cif100' in org_model['arch']:
+            from models import vgg13_nobn
             net = vgg13_nobn()
         state, net = load_model(net, out_dir, 'nobn_'+file_name)
         net = net.to(device)

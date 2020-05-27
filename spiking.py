@@ -15,7 +15,6 @@ plt.style.use('ggplot')
 import pandas as pd
 
 from models.spiking_activations import SpikeRelu, spikeRelu
-#from models.alex_spiking import alexnet_partial
 
 ################# Spiking VGG-net: uses spike relus #################################
 
@@ -377,6 +376,7 @@ def create_partial_model(split_layer_num, model, spike_model, arch):
         from models.vgg16_spiking import vggnet_partial
         model_partial = vggnet_partial(SPLIT_LAYER, num_to_name_ann, n_to_t_ann)
     elif 'alex' in arch:
+        from models.alex_spiking import alexnet_partial
         model_partial = alexnet_partial(SPLIT_LAYER, num_to_name_ann, n_to_t_ann)
     elif 'svhn' in arch:
         from models.svhn_spike import svhn_partial
@@ -618,7 +618,6 @@ def sanity_check(net, spike_net, max_acts):
             i += 1
 
 
-#from models.vgg_cif100_spike import vgg13_nobn_spike
 def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_acts, \
         device='cuda:0', out_dir=None):
 
@@ -660,6 +659,7 @@ def createSpikingModel(net, arch, num_classes, spike_config, thresholds, max_act
         spike_net = mobilenet_cif100_nobn_spike(thresholds, device, clamp_slope, reset)
 
     elif 'vgg_cif100' in arch:
+        from models.vgg_cif100_spike import vgg13_nobn_spike
         spike_net = vgg13_nobn_spike(thresholds, device, clamp_slope, reset)
 
     elif 'svhn' in arch:
