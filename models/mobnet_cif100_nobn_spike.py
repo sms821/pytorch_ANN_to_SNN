@@ -6,9 +6,7 @@ SpikeRelu = spiking_activations.SpikeRelu
 
 class DepthSeperabelConv2d(nn.Module):
 
-    #def __init__(self, input_channels, output_channels, kernel_size, **kwargs):
     def __init__(self, input_channels, output_channels, kernel_size, thresholds, device, th_idx=0, clp_slp=0, reset='to-threshold', **kwargs):
-#thresholds, device, th_idx=0, clp_slp=0, stride=1, reset='to-threshold'
         super().__init__()
         self.depthwise = nn.Sequential(
             nn.Conv2d(
@@ -18,13 +16,11 @@ class DepthSeperabelConv2d(nn.Module):
                 groups=input_channels,
                 **kwargs),
             SpikeRelu(thresholds[th_idx], th_idx, clp_slp, device, reset)
-            #nn.ReLU(inplace=True)
         )
 
         self.pointwise = nn.Sequential(
             nn.Conv2d(input_channels, output_channels, 1, bias=True),
             SpikeRelu(thresholds[th_idx+1], th_idx+1, clp_slp, device, reset)
-            #nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
@@ -36,18 +32,15 @@ class DepthSeperabelConv2d(nn.Module):
 
 class BasicConv2d(nn.Module):
 
-    #def __init__(self, input_channels, output_channels, kernel_size, **kwargs):
     def __init__(self, input_channels, output_channels, kernel_size, thresholds, device, clp_slp, reset, **kwargs):
 
         super().__init__()
         self.conv = nn.Conv2d(
             input_channels, output_channels, kernel_size, **kwargs)
-        #self.bn = nn.BatchNorm2d(output_channels, affine=False)
         self.relu = SpikeRelu(thresholds[0], 0, clp_slp, device, reset)
 
     def forward(self, x):
         x = self.conv(x)
-        #x = self.bn(x)
         x = self.relu(x)
 
         return x
@@ -64,7 +57,6 @@ class MobileNet(nn.Module):
                          output channels N becomes αN.
     """
 
-    #def __init__(self, width_multiplier=1, class_num=100):
     def __init__(self, thresholds, device, clp_slp, reset, width_multiplier=1, class_num=100):
 
        super().__init__()

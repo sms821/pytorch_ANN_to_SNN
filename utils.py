@@ -404,12 +404,11 @@ def load_mnist(data_dir='./data', arch='mobilenet_cifar10', batch_size=128, clas
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.1307], std=[0.3081]) ])
 
-    #val_loader = torch.utils.data.DataLoader( \
     trainset = datasets.MNIST(root=data_dir, train=True, transform=transform)
     testset = datasets.MNIST(root=data_dir, train=False, transform=transform)
 
-    trainloader = data.DataLoader( testset, batch_size=batch_size, shuffle=False)
-    testloader = data.DataLoader( testset, batch_size=batch_size, shuffle=False)
+    trainloader = data.DataLoader( testset, batch_size=batch_size, shuffle=False, num_workers=4 )
+    testloader = data.DataLoader( testset, batch_size=batch_size, shuffle=False, num_workers=4)
     return trainloader, testloader
 
 

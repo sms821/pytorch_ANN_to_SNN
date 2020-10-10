@@ -2,7 +2,6 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-from torchsummary import summary
 
 from utils import *
 from common import *
@@ -66,15 +65,6 @@ def simulate_spike_model(net, arch, val_loader, config, thresholds, max_acts, \
     confidence_a = np.zeros(numBatches*batch_size)
     spike_buffers = None
 
-    ############ Saving inference results to a csv file #############
-    #filename = os.path.join(out_dir, 'inference_results.csv')
-    #field_names = ['input', 'predicted', 'plane', 'car', 'bird', 'cat',
-    #        'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-    #csv_file = open(filename, mode='a')
-    #import csv
-    #writer = csv.DictWriter(csv_file, fieldnames=field_names)
-    #writer.writeheader()
-
     with torch.no_grad():
         for i, data in enumerate(val_loader):
             if batch_num >= numBatches:
@@ -105,13 +95,10 @@ def simulate_spike_model(net, arch, val_loader, config, thresholds, max_acts, \
                     buffers[z+1] = layer_out
 
                 spike_hooks, spike_buffers = create_spike_buffers(spike_net, img_size, device, batch_size)
-                #print('# buffers: {}\t#spike-buffers: {}'.format(len(buffers), len(spike_buffers)))
                 assert(len(buffers) == len(spike_buffers))
                 for i in range(len(buffers)):
-                    #print(i, buffers[i].size(), spike_buffers[i].size())
                     assert(buffers[i].size() == spike_buffers[i].size())
 
-                #print('spike_hooks: {}\thooks: {}'.format(len(spike_hooks), len(hooks)))
                 assert(len(spike_hooks) == len(hooks) == num_layers-1)
 
             # starting of time-stepped spike integration of SNN
@@ -157,7 +144,6 @@ def simulate_spike_model(net, arch, val_loader, config, thresholds, max_acts, \
 
             ############### calling the partial non-spiking model here ##############
 
-            #print(split_layer)
             predicted_partial = -1
             if hybrid:
                 assert save_activation, 'set `save_activations` to True in config-file.'
@@ -211,18 +197,7 @@ def simulate_spike_model(net, arch, val_loader, config, thresholds, max_acts, \
             total_correct += (predicted == labels).sum().item()
             expected_correct += (predicted_org.cpu() == labels).sum().item()
 
-            ## Saving results to a csv file
-
-            #for b in range(batch_size):
-            #    save_dict = {'input': labels.data.tolist()[b], \
-            #            'predicted': predicted.data.tolist()[b] }
-            #    for n, i in enumerate(total_spikes_b_c.data.tolist()[b]):
-            #        save_dict[field_names[n+2]] = int(i)
-            #    writer.writerow(save_dict )
-
-            ## Saving results to a csv file (end)
-
-            print('snn: {}\tann: {}\tpart: {}\treal: {}'.\
+            print('snn: {}\tann: {}\tpart: {}\tlabel: {}'.\
                     format(predicted, predicted_org, predicted_partial, labels))
 
             for i, l in enumerate(labels):
@@ -582,8 +557,9 @@ def condition(rand_val, in_val, abs_max_val, MFR=1):
     else:
         return 0
 
-def poisson_spikes(pixel_vals, MFR=1):
+def poisson_spikes(pixel_vals, MFR):
     " MFR = maximum firing rate "
+    " Use when GPU is short of memory. Slower implementation"
     out_spikes = np.zeros(pixel_vals.shape)
     for b in range(pixel_vals.shape[0]):
         random_inputs = np.random.rand(pixel_vals.shape[1],pixel_vals.shape[2], pixel_vals.shape[3])
@@ -592,6 +568,20 @@ def poisson_spikes(pixel_vals, MFR=1):
         vfunc = np.vectorize(condition)
         out_spikes[b,:,:,:] = vfunc(random_inputs, single_img, max_val, MFR)
     return out_spikes
+
+
+def poisson_spikes_torch(images, MFR=1, device='cuda:0'):
+    ''' creates poisson spikes from input images '''
+    ''' shape of input and output: BCHWT. Faster. '''
+    #images = images.cpu()
+    random_vals = torch.rand(images.size(), device=device)
+    images_max = images.cpu().numpy().max(axis=(1,2,3), keepdims=True)
+    images_max = torch.from_numpy(images_max).to(device)
+    ratio = (abs(images) / images_max) * MFR
+    #print(ratio.size())
+    random_vals = torch.where(random_vals <= ratio, torch.tensor(1, device=device), \
+            torch.tensor(0, device=device))
+    return random_vals
 
 
 def sanity_check(net, spike_net, max_acts):

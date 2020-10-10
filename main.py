@@ -1,15 +1,16 @@
+import torch
+
 import numpy as np
 import os
 import configparser
 import argparse
 import pprint
 
-import torch
 from utils import *
 
 def main():
     parser = argparse.ArgumentParser(description='Deep Learning SNN simulation')
-    parser.add_argument('--config-file', default='config.ini')
+    parser.add_argument('--config-file', help='.ini file specifying simulation params')
     args = parser.parse_args()
     print (args)
 
