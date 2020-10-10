@@ -8,3 +8,5 @@ vgg_cif100/
 *.bak*
 __pycache__/
 configs_actual/
+*.pyc
+models/*.pyc
