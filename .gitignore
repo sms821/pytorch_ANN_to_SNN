@@ -6,5 +6,5 @@ lenet5/
 mobnet_cif100/
 vgg_cif100/
 *.bak*
-configs/
 __pycache__/
+configs_actual/
